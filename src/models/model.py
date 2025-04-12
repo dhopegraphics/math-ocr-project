@@ -1,32 +1,28 @@
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Reshape, Bidirectional, LSTM, Dense, Dropout
+import tensorflow as tf
 
 def build_crnn_model(input_shape, num_classes):
-    """Build a CNN-RNN model for sequence prediction"""
-    # Input layer
-    input_img = Input(shape=input_shape, name='input_image')
-    
-    # CNN layers
-    x = Conv2D(32, (3, 3), activation='relu', padding='same')(input_img)
-    x = MaxPooling2D((2, 2), name='pool1')(x)
-    
-    x = Conv2D(64, (3, 3), activation='relu', padding='same')(x)
-    x = MaxPooling2D((2, 2), name='pool2')(x)
-    
-    x = Conv2D(128, (3, 3), activation='relu', padding='same')(x)
-    x = MaxPooling2D((1, 2), name='pool3')(x)
-    
-    # Prepare for RNN
-    x = Reshape((-1, 128))(x)  # Convert to sequence
-    
-    # RNN layers
-    x = Bidirectional(LSTM(128, return_sequences=True))(x)
-    x = Bidirectional(LSTM(128, return_sequences=True))(x)
-    
-    # Output layer
-    x = Dense(num_classes, activation='softmax')(x)
-    
-    # Create model
-    model = Model(inputs=input_img, outputs=x)
-    
+    input_img = tf.keras.Input(shape=input_shape, name='input_image')
+
+    x = tf.keras.layers.Conv2D(32, (3, 3), padding='same', activation='relu')(input_img)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.MaxPooling2D((2, 2))(x)
+
+    x = tf.keras.layers.Conv2D(64, (3, 3), padding='same', activation='relu')(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.MaxPooling2D((2, 2))(x)
+
+    x = tf.keras.layers.Conv2D(128, (3, 3), padding='same', activation='relu')(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.MaxPooling2D((1, 2))(x)
+
+    x = tf.keras.layers.Reshape((-1, 128))(x)
+
+    x = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(128, return_sequences=True))(x)
+    x = tf.keras.layers.Dropout(0.2)(x)
+    x = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(128, return_sequences=True))(x)
+    x = tf.keras.layers.Dropout(0.2)(x)
+
+    x = tf.keras.layers.Dense(num_classes + 1, activation='softmax')(x)
+
+    model = tf.keras.Model(inputs=input_img, outputs=x)
     return model

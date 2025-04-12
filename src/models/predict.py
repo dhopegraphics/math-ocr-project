@@ -5,7 +5,9 @@ from src.data.preprocessing import preprocess_image
 
 class MathOCR:
     def __init__(self, model_path='saved_models/best_model.h5'):
-        self.model = tf.keras.models.load_model(model_path, custom_objects={'ctc_loss': ctc_loss})
+        self.model = tf.keras.models.load_model(model_path, 
+                              custom_objects={'ctc_loss': tf.keras.backend.ctc_batch_cost})
+        
         self.characters = "0123456789+-=(){}[]abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,;:!?/\\&@#$%^*_|"  # Add all math symbols
     
     def decode_prediction(self, pred):

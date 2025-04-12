@@ -20,6 +20,9 @@ wheels/
 .installed.cfg
 *.egg
 
+formula_images/
+raw/
+
 # Virtual environment
 mathocr-env/
 venv/

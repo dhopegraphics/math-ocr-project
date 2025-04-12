@@ -2,6 +2,7 @@
     "cSpell.words": [
         "crnn",
         "deskew",
+        "fromarray",
         "imread",
         "OTSU",
         "Thresholding"
