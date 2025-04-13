@@ -25,9 +25,9 @@ def main():
         print("[INFO] Training complete!")
 
     elif args.command == 'predict':
-        ocr = MathOCR()
-        latex = ocr.predict(args.image_path)
-        print(f"Predicted LaTeX: {latex}")
+         ocr = MathOCR()
+         result = ocr.predict(args.image_path)
+         print(f"\n📄 Predicted LaTeX:\n{result}\n")
 
 if __name__ == '__main__':
     main()

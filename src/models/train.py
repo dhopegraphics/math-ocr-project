@@ -35,9 +35,8 @@ def prepare_dataset(images, labels, augment_prob=0.5):
         elif img.ndim == 3 and img.shape[-1] != 1:
             img = img[:, :, :1]
 
-        # Resize to ensure shape is exactly (64, 256, 1)
-        from tensorflow.image import resize_with_pad
-        img = resize_with_pad(img, 64, 256).numpy()
+      
+        img = tf.resize_with_pad(img, 64, 256).numpy()
         img = img.astype(np.float32)
 
         if img.shape != (64, 256, 1):
@@ -47,6 +46,8 @@ def prepare_dataset(images, labels, augment_prob=0.5):
 
         processed_images.append(img)
         processed_labels.append([CHARACTER_SET.index(c) for c in label if c in CHARACTER_SET])
+        print(f"[DEBUG] Sample label: {label}")
+        print(f"[DEBUG] Encoded label: {processed_labels[-1]}")
         shapes.append(img.shape)
 
     # 🧠 Check if shapes are actually uniform
@@ -88,13 +89,13 @@ def train_model(dataset_path, dataset_type='IM2LATEX', epochs=50):
     
 
     input_shape = X_train.shape[1:]
-    num_classes = len(CHARACTER_SET)
+    num_classes = len(CHARACTER_SET) + 1
 
     model = build_crnn_model(input_shape, num_classes)
     model.compile(optimizer='adam', loss=ctc_loss)
 
     callbacks = [
-        ModelCheckpoint('saved_models/best_model.h5', monitor='val_loss', save_best_only=True),
+       ModelCheckpoint('saved_models/best_model.keras',monitor='val_loss',save_best_only=True,mode='min'),
         EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True),
         TensorBoard(log_dir='./logs')
     ]

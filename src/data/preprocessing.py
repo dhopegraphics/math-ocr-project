@@ -50,7 +50,7 @@ def load_im2latex_dataset(base_dir, split='train'):
     images = []
     labels = []
 
-    for i, item in enumerate(lst_data[:50]):  # Only first 50 to debug fast
+    for i, item in enumerate(lst_data):
         img_path = os.path.join(images_dir, f"{item['image_name']}.png")
         if not os.path.exists(img_path):
             print(f"[❌] Missing image: {img_path}")

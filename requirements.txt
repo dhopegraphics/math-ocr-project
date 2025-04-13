@@ -1,8 +1,21 @@
-tensorflow==2.19.0
-opencv-python==4.11.0.86
-pillow==11.1.0
-numpy==2.0.2
-matplotlib==3.9.4
-scikit-learn==1.6.1
-scikit-image==0.24.0
-pandas==2.2.3
+# Core
+numpy==1.26.0
+pandas==2.1.1
+tqdm==4.65.0
+
+# Image processing
+opencv-python==4.8.0.76
+Pillow==10.0.0
+scikit-image==0.21.0
+
+# Deep Learning
+tensorflow==2.13.0
+keras==2.13.1
+
+# LaTeX handling
+sympy==1.12
+pylatexenc==2.10
+
+# Development
+jupyter==1.0.0
+matplotlib==3.7.2
