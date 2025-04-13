@@ -1,0 +1,32 @@
+2025-04-13 10:08:52,537 - INFO - Loading dataset...
+2025-04-13 10:08:52,539 - ERROR - Training failed: 'utf-8' codec can't decode byte 0xe7 in position 2168: invalid continuation byte
+Traceback (most recent call last):
+  File "/Users/dhope-graphics/Dhope-Space/WORK/MACHINE-LEARNING/math-ocr-project/src/models/train.py", line 34, in train_model
+    dataset = Im2LatexDataset(data_dir)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/dhope-graphics/Dhope-Space/WORK/MACHINE-LEARNING/math-ocr-project/src/data/im2latex_loader.py", line 12, in __init__
+    self.formulas = self._load_formulas()
+                    ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/dhope-graphics/Dhope-Space/WORK/MACHINE-LEARNING/math-ocr-project/src/data/im2latex_loader.py", line 18, in _load_formulas
+    formulas = [formula.strip() for formula in f.readlines()]
+                                               ^^^^^^^^^^^^^
+  File "<frozen codecs>", line 322, in decode
+UnicodeDecodeError: 'utf-8' codec can't decode byte 0xe7 in position 2168: invalid continuation byte
+2025-04-13 10:09:15,318 - INFO - Loading dataset...
+2025-04-13 10:09:15,321 - ERROR - Training failed: 'utf-8' codec can't decode byte 0xe7 in position 2168: invalid continuation byte
+Traceback (most recent call last):
+  File "/Users/dhope-graphics/Dhope-Space/WORK/MACHINE-LEARNING/math-ocr-project/src/models/train.py", line 34, in train_model
+    dataset = Im2LatexDataset(data_dir)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/dhope-graphics/Dhope-Space/WORK/MACHINE-LEARNING/math-ocr-project/src/data/im2latex_loader.py", line 12, in __init__
+    self.formulas = self._load_formulas()
+                    ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/dhope-graphics/Dhope-Space/WORK/MACHINE-LEARNING/math-ocr-project/src/data/im2latex_loader.py", line 18, in _load_formulas
+    formulas = [formula.strip() for formula in f.readlines()]
+                                               ^^^^^^^^^^^^^
+  File "<frozen codecs>", line 322, in decode
+UnicodeDecodeError: 'utf-8' codec can't decode byte 0xe7 in position 2168: invalid continuation byte
+2025-04-13 11:29:28,008 - INFO - Loading dataset...
+2025-04-13 11:29:28,008 - INFO - Loading formulas from data/raw/IM2LATEX/im2latex_formulas.lst
+2025-04-13 11:29:28,048 - INFO - Successfully loaded using latin-1 encoding
+2025-04-13 11:29:28,048 - INFO - Processing train split from data/raw/IM2LATEX/im2latex_train.lst

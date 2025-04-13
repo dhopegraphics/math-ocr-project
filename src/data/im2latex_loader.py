@@ -1,70 +1,83 @@
 import os
 import tarfile
-from PIL import Image
+from tqdm import tqdm
+import cv2
 import numpy as np
+import logging
+from .preprocessing import is_blank_image
 
-def extract_images(tar_path, output_dir):
-    import tarfile, os
-
-    if os.path.exists(output_dir) and len(os.listdir(output_dir)) > 10:
-        print(f"[INFO] Skipping extraction; images already exist at: {output_dir}")
-        return
-
-    print(f"[INFO] Extracting images to: {output_dir}")
-    with tarfile.open(tar_path, 'r:gz') as tar:
-        tar.extractall(path=output_dir)
-
-    print(f"[✅] Extraction complete! Images now available in: {output_dir}")
-
-def load_formulas(formulas_path):
-    """Load LaTeX formulas from im2latex_formulas.lst with fallback encoding"""
-    with open(formulas_path, 'r', encoding='utf-8', errors='replace') as f:
-        formulas = [line.strip() for line in f]
-    return formulas
-
-def parse_lst_file(lst_path):
-    """Parse im2latex_[train|val|test].lst files"""
-    data = []
-    with open(lst_path, 'r') as f:
-        for line in f:
-            parts = line.strip().split()
-            if len(parts) == 3:
-                data.append({
-                    'formula_idx': int(parts[0]),
-                    'image_name': parts[1],
-                    'render_type': parts[2]
-                })
-    return data
-
-
-def crop_formula_image(image_path):
-    from PIL import Image
-    import numpy as np
-
-    try:
-        img = Image.open(image_path).convert("L")
-        img = np.array(img)
-
-        if img.ndim != 2:
-            print(f"[⚠️] Not grayscale: {image_path}")
-            return None
-
-        non_empty = np.where(img < 255)
-        if len(non_empty[0]) == 0:
-            print(f"[ℹ️] Blank image (all white): {image_path}")
-            return None
-
-        min_y, max_y = non_empty[0].min(), non_empty[0].max()
-        min_x, max_x = non_empty[1].min(), non_empty[1].max()
-
-        padding = 10
-        min_x = max(0, min_x - padding)
-        min_y = max(0, min_y - padding)
-        max_x = min(img.shape[1], max_x + padding)
-        max_y = min(img.shape[0], max_y + padding)
-
-        cropped = img[min_y:max_y, min_x:max_x]
-        return Image.fromarray(cropped)
-    except Exception as e:
-        print(f"[💥] Error loading image: {image_path} — {e}")
-        return None
+class Im2LatexDataset:
+    def __init__(self, data_dir, max_formula_len=150):
+        self.data_dir = data_dir
+        self.max_formula_len = max_formula_len
+        self.logger = logging.getLogger(__name__)
+        self.formulas = self._load_formulas()
+        self.train, self.val, self.test = self._load_splits()
+        
+    def _load_formulas(self):
+        """Load formulas with encoding fallback"""
+        formula_file = os.path.join(self.data_dir, 'im2latex_formulas.lst')
+        self.logger.info(f"Loading formulas from {formula_file}")
+        
+        # Try different encodings
+        encodings = ['utf-8', 'latin-1', 'iso-8859-1', 'cp1252']
+        
+        for encoding in encodings:
+            try:
+                with open(formula_file, 'r', encoding=encoding) as f:
+                    formulas = [formula.strip() for formula in f.readlines()]
+                self.logger.info(f"Successfully loaded using {encoding} encoding")
+                return formulas
+            except UnicodeDecodeError:
+                continue
+                
+        raise ValueError(f"Could not decode {formula_file} with any supported encoding")
+    
+    def _load_splits(self):
+        """Load dataset splits with error handling"""
+        # Extract images if needed
+        if not os.path.exists(os.path.join(self.data_dir, 'formula_images')):
+            self.logger.info("Extracting images...")
+            try:
+                with tarfile.open(os.path.join(self.data_dir, 'formula_images.tar.gz'), 'r:gz') as tar:
+                    tar.extractall(path=self.data_dir)
+            except Exception as e:
+                self.logger.error(f"Failed to extract images: {str(e)}")
+                raise
+        
+        splits = {}
+        for split in ['train', 'validate', 'test']:
+            split_file = os.path.join(self.data_dir, f'im2latex_{split}.lst')
+            self.logger.info(f"Processing {split} split from {split_file}")
+            
+            try:
+                with open(split_file, 'r', encoding='utf-8') as f:
+                    lines = f.readlines()
+            except UnicodeDecodeError:
+                # Fallback to latin-1 if utf-8 fails
+                with open(split_file, 'r', encoding='latin-1') as f:
+                    lines = f.readlines()
+            
+            pairs = []
+            for line in tqdm(lines, desc=f"Loading {split} images"):
+                try:
+                    parts = line.strip().split()
+                    formula_idx = int(parts[0])
+                    img_name = parts[1]
+                    formula = self.formulas[formula_idx]
+                    img_path = os.path.join(self.data_dir, 'formula_images', f'{img_name}.png')
+                    
+                    if os.path.exists(img_path):
+                        img = cv2.imread(img_path)
+                        if img is not None and not is_blank_image(img):
+                            pairs.append((img_path, formula))
+                        else:
+                            self.logger.debug(f"Skipping blank/corrupted image: {img_path}")
+                except Exception as e:
+                    self.logger.warning(f"Error processing line: {line.strip()}. Error: {str(e)}")
+                    continue
+            
+            splits[split] = pairs
+            self.logger.info(f"Loaded {len(pairs)} valid {split} samples")
+        
+        return splits['train'], splits['validate'], splits['test']

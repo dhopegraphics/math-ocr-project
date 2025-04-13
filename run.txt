@@ -1,0 +1,5 @@
+python -m src.data.im2latex_loader --data_dir data/raw/IM2LATEX
+
+python src/main.py train --data_dir data/raw/IM2LATEX --epochs 50
+
+python src/main.py predict --image_path path/to/your/image.png

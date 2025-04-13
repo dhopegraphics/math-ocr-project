@@ -1,38 +1,39 @@
 import numpy as np
 import cv2
-from scipy.ndimage import rotate
+from skimage.transform import rotate
+from skimage.util import random_noise
 
-def random_rotation(image, max_angle=10):
+def random_rotation(image, max_angle=5):
     angle = np.random.uniform(-max_angle, max_angle)
-    return rotate(image, angle, reshape=False, mode='nearest')
+    return rotate(image, angle, mode='edge')
 
 def random_scale(image, scale_range=(0.9, 1.1)):
-    h, w = image.shape[:2]
     scale = np.random.uniform(*scale_range)
-    new_h, new_w = int(h * scale), int(w * scale)
-    img = cv2.resize(image, (new_w, new_h))
-
+    h, w = image.shape[:2]
+    new_size = (int(w * scale), int(h * scale))
+    scaled = cv2.resize(image, new_size)
+    
+    # Pad/crop to original size
     if scale > 1:
-        start_h, start_w = (new_h - h) // 2, (new_w - w) // 2
-        img = img[start_h:start_h+h, start_w:start_w+w]
+        # Crop center
+        start_x = (scaled.shape[1] - w) // 2
+        start_y = (scaled.shape[0] - h) // 2
+        return scaled[start_y:start_y+h, start_x:start_x+w]
     else:
-        pad_h, pad_w = h - new_h, w - new_w
-        img = np.pad(img, ((pad_h//2, pad_h - pad_h//2),
-                           (pad_w//2, pad_w - pad_w//2)), mode='constant')
-    return img
+        # Pad with zeros
+        delta_w = w - scaled.shape[1]
+        delta_h = h - scaled.shape[0]
+        return cv2.copyMakeBorder(
+            scaled, 
+            delta_h//2, delta_h - delta_h//2,
+            delta_w//2, delta_w - delta_w//2,
+            cv2.BORDER_CONSTANT, value=0)
 
-def add_noise(image, noise_factor=0.05):
-    noise = np.random.randn(*image.shape) * noise_factor
-    noisy_image = np.clip(image + noise, 0, 255).astype(np.uint8)
-    return noisy_image
-
-def apply_augmentations(image, seed=None):
-    if seed is not None:
-        np.random.seed(seed)
+def augment_image(image):
     if np.random.rand() > 0.5:
         image = random_rotation(image)
     if np.random.rand() > 0.5:
         image = random_scale(image)
-    if np.random.rand() > 0.5:
-        image = add_noise(image)
+    if np.random.rand() > 0.2:
+        image = random_noise(image, var=0.001)
     return image

@@ -1,10 +1,13 @@
 {
     "cSpell.words": [
         "crnn",
+        "crossentropy",
         "deskew",
         "fromarray",
         "imread",
+        "levelname",
         "OTSU",
+        "skimage",
         "Thresholding"
     ]
 }
